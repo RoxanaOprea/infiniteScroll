@@ -31,7 +31,7 @@ class GridInfiniteScroll extends Component {
   render() {
     const { columnDefs, rowData } = this.state;
     return (
-      <div className="ag-theme-balham-dark" style={{height: '700px'}}>
+      <div className="ag-theme-balham" style={{height: '700px'}}>
         <AgGridReact
           columnDefs={columnDefs}
           onGridReady={this.onGridReady}
