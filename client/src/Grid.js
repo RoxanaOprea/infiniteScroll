@@ -3,9 +3,6 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid/dist/styles/ag-grid.css";
 import "ag-grid/dist/styles/ag-theme-material.css";
 
-//import dataSource from "./db.json";
-//import PropTypes from "prop-types";
-
 class GridInfiniteScroll extends Component {
   constructor(props) {
     super(props);
@@ -16,11 +13,10 @@ class GridInfiniteScroll extends Component {
         { headerName: "Username", field: "userName", width: 450 },
         { headerName: "Email", field: "email", width: 500 }
       ],
-      rowBuffer: 0,
-      paginationPageSize: 100,
-      cacheOverflowSize: 2,
+      //rowBuffer: 0,
+      paginationPageSize: 20,
+      cacheOverflowSize: 20,
       maxConcurrentDatasourceRequests: 1,
-      infiniteInitialRowCount: 25,
       maxBlocksInCache: 2,
       getRowId: function(item) {
         return item.id.toString();
@@ -30,41 +26,44 @@ class GridInfiniteScroll extends Component {
     this.onGridReady = this.onGridReady.bind(this);
   }
 
-  // removeItem(start, limit) {
-  //   allOfTheData.splice(start, limit);
-  //   this.gridApi.refreshInfiniteCache();
-  // }
 
   onGridReady = async params => {
     this.api = params.api;
     this.columnApi = params.columnApi;
 
-    const response = await fetch("/users/10", {
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    const repos = await response.json();
-    //console.log(repos);
-
     let dataSource = {
       rowCount: null,
-      getRows: function(params) {
+      getRows: async params => {
         console.log("asking for " + params.startRow + " to " + params.endRow);
+        const limit = params.endRow - params.startRow;
+        const response = await fetch(`/users?limit=${limit}&offset=${params.startRow}`, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
 
-        //var dataAfterSortingAndFiltering = sortAndFilter(data, params.sortModel, params.filterModel);
-        var rowsThisPage = repos.slice(params.startRow, params.endRow);
-        var lastRow = -1;
-        if (repos.length <= params.endRow) {
-          lastRow = repos.length;
+        console.log(response)
+    
+        const data = await response.json();
+
+        if(!data.length) {
+          params.failCallback();
         }
-        params.successCallback(rowsThisPage, lastRow);
+  
+        let lastRow = -1;
+        if (data.length < limit) {
+          console.log(data.length, params.endRow)
+          lastRow = params.startRow + data.length;
+        }
+        
+        params.successCallback(data, lastRow);
       }
     };
+  
     params.api.setDatasource(dataSource);
   };
 
+  //in store
   // removeUser = (id)  => {
   //   const {users} = this.dataSource;
   //   console.log(users)
@@ -98,7 +97,7 @@ class GridInfiniteScroll extends Component {
             enableColResize={true}
             rowDeselection={true}
             paginationPageSize={this.state.paginationPageSize}
-            cacheOverflowSize={this.state.cacheOverflowSize}
+            cacheBlockSize={this.state.cacheOverflowSize}
             getRowNodeId={this.state.getRowId}
             maxConcurrentDatasourceRequests={
               this.state.maxConcurrentDatasourceRequests
@@ -116,3 +115,4 @@ class GridInfiniteScroll extends Component {
 }
 
 export default GridInfiniteScroll;
+

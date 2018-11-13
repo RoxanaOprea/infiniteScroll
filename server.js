@@ -26,28 +26,25 @@ app.get('/user', (req, res) => {
   res.status(200).send(data);
 });
 
-app.get('/users/:num', (req, res) => {
+app.get('/users', (req, res) => {
   const users = [];
-  const num = req.params.num;
+  const { limit, offset } = req.query;
 
-  if(isFinite(num) && num > 0) {
-    for(let i = 0; i <= num-1; i++) {
-      users.push({
-        id:uuid(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-        userName: faker.internet.userName(),
-        email: faker.internet.email()
-      });
-    }
-    res.status(200).send(users);
-  } else {
-    res.status(400).send({message: 'invalid number'});
+  for(let i = offset; i <= offset+limit-1; i++) {
+    users.push({
+      id: uuid(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      userName: faker.internet.userName(),
+      email: faker.internet.email()
+    });
   }
+
+  res.status(200).send(users);
 });
 
 app.delete('/users/:id', (req, res) => {
-    let userId = req.params.id;
+    //let userId = parseInt(req.params.id);
     console.log(userId);
 })
 
