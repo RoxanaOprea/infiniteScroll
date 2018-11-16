@@ -1,9 +1,12 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import { usersFetchData } from "../actions/users";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid/dist/styles/ag-grid.css";
 import "ag-grid/dist/styles/ag-theme-material.css";
+import PropTypes from 'prop-types';
 
-class GridInfiniteScroll extends Component {
+class UserList extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -26,39 +29,49 @@ class GridInfiniteScroll extends Component {
     this.onGridReady = this.onGridReady.bind(this);
   }
 
-
   onGridReady = async params => {
     this.api = params.api;
     this.columnApi = params.columnApi;
-
+    
     let dataSource = {
       rowCount: null,
       getRows: async params => {
-        //console.log("asking for " + params.startRow + " to " + params.endRow);
+        console.log("asking for " + params.startRow + " to " + params.endRow);//0 to 20
         const limit = params.endRow - params.startRow;
-        const response = await this.props.fetchData(limit, params.startRow);
-    
+        
+        const response = await this.props.fetchData(
+          limit,
+          params.startRow
+        );
+        
         const data = await response.json();
-
-        if(!data.length) {
+        
+        if (!data.length) {
           params.failCallback();
         }
-  
+
         let lastRow = -1;
         if (data.length < limit) {
-          console.log(data.length, params.endRow)
+          //console.log(data.length, params.endRow);
           lastRow = params.startRow + data.length;
         }
-        
+
         params.successCallback(data, lastRow);
       }
     };
-  
+
     params.api.setDatasource(dataSource);
   };
 
+
   render() {
-    const { columnDefs } = this.state;
+    if (this.props.hasErrored) {
+      return <p>Sorry! There was an error loading the users</p>;
+    }
+
+    if (this.props.isLoading) {
+      return <p>Loading…</p>;
+    }
 
     return (
       <div style={{ width: "100%", height: "900px" }}>
@@ -72,7 +85,7 @@ class GridInfiniteScroll extends Component {
           className="ag-theme-material"
         >
           <AgGridReact
-            columnDefs={columnDefs}
+            columnDefs={this.state.columnDefs}
             onGridReady={this.onGridReady}
             rowSelection="multiple"
             rowModelType="infinite"
@@ -86,6 +99,8 @@ class GridInfiniteScroll extends Component {
             }
             infiniteInitialRowCount={this.state.infiniteInitialRowCount}
             maxBlocksInCache={this.state.maxBlocksInCache}
+            reactNext={true}
+            reduxStore={this.context.store} // must be supplied when using redux with reactNext
           />
         </div>
       </div>
@@ -93,5 +108,25 @@ class GridInfiniteScroll extends Component {
   }
 }
 
-export default GridInfiniteScroll;
+// UserList.contextTypes = {
+//   store: PropTypes.object
+// };
 
+const mapStateToProps = state => {
+  return {
+    users: state.users,
+    hasErrored: state.usersHasErrored,
+    isLoading: state.usersIsLoading
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchData: url => dispatch(usersFetchData(url))
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(UserList);

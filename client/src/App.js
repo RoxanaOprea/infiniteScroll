@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import GridInfiniteScroll from './Grid';
+// import GridInfiniteScroll from './Grid';
+import UserList from './components/UserList';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import './App.css';
@@ -29,7 +30,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <GridInfiniteScroll />
+        <UserList />
       </div>
     );
   }

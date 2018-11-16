@@ -29,6 +29,7 @@ app.get('/user', (req, res) => {
 app.get('/users', (req, res) => {
   const users = [];
   const { limit, offset } = req.query;
+  //console.log(req);
 
   for(let i = offset; i <= offset+limit-1; i++) {
     users.push({
