@@ -122,7 +122,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchData: url => dispatch(usersFetchData(url))
+    fetchData: (limit, offset )=> dispatch(usersFetchData(limit, offset))
   };
 };
 
